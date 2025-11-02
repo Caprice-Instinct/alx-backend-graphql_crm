@@ -2,15 +2,19 @@ from datetime import datetime
 import requests
 import json
 from .models import Product
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 
 def log_crm_heartbeat():
     timestamp = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
     message = f"{timestamp} CRM is alive\n"
     
     try:
-        response = requests.post('http://localhost:8000/graphql', 
-                               json={'query': '{ hello }'})
-        if response.status_code == 200:
+        transport = RequestsHTTPTransport(url="http://localhost:8000/graphql")
+        client = Client(transport=transport, fetch_schema_from_transport=True)
+        query = gql("{ hello }")
+        result = client.execute(query)
+        if result.get('hello'):
             message += f"{timestamp} GraphQL endpoint responsive\n"
     except:
         pass
